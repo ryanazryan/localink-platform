@@ -1,0 +1,216 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- ENUMS ---
+
+enum Role {
+  INDUSTRI
+  GURU
+  SISWA
+}
+
+enum ProjectStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+enum AssignmentStatus {
+  ASSIGNED  
+  IN_PROGRESS
+  SUBMITTED 
+  COMPLETED
+}
+
+enum CompetencyLevel {
+  BASIC
+  INTERMEDIATE
+  ADVANCED
+}
+
+// --- CORE USER MANAGEMENT ---
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relasi One-to-One ke Profil Spesifik
+  industryProfile IndustryProfile?
+  teacherProfile  TeacherProfile?
+  studentProfile  StudentProfile?
+
+  // Relasi untuk Chat/Mentoring (User sebagai pengirim pesan)
+  sentMessages MentoringLog[]
+}
+
+// --- PROFIL PENGGUNA ---
+
+model IndustryProfile {
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique
+  user           User    @relation(fields: [userId], references: [id])
+  
+  namaPerusahaan String
+  deskripsi      String? @db.Text
+  alamat         String?
+  website        String?
+  bidangKerja    String?
+  contactPerson  String?
+
+  competencies Competency[]
+  projects     Project[]
+}
+model TeacherProfile {
+  id           Int     @id @default(autoincrement())
+  userId       Int     @unique
+  user         User    @relation(fields: [userId], references: [id])
+
+  fullName     String
+  nip          String? // Nomor Induk Pegawai
+  sekolah      String
+  bidangKeahlian String?
+
+  // Relasi: Guru menugaskan proyek (Assignment)
+  assignments  Assignment[]
+}
+
+model StudentProfile {
+  id           Int     @id @default(autoincrement())
+  userId       Int     @unique
+  user         User    @relation(fields: [userId], references: [id])
+
+  fullName     String
+  nisn         String? // Nomor Induk Siswa Nasional
+  kelas        String?
+  jurusan      String?
+
+  // Relasi: Siswa menerima tugas (Assignment)
+  assignments  Assignment[]
+}
+
+// --- FITUR 1: DATABASE INDUSTRI ---
+
+model Competency {
+  id                Int             @id @default(autoincrement())
+  industryProfileId Int
+  industry          IndustryProfile @relation(fields: [industryProfileId], references: [id])
+  
+  skillName         String
+  level             CompetencyLevel
+}
+
+// --- FITUR 2: PROYEK NYATA ---
+
+model Project {
+  id                Int             @id @default(autoincrement())
+  industryProfileId Int
+  industry          IndustryProfile @relation(fields: [industryProfileId], references: [id])
+
+  title             String
+  problemStatement  String        @db.Text
+  taskDetail        String        @db.Text
+  expectedOutput    String        // e.g. "Video", "Website", "Laporan PDF"
+  status            ProjectStatus @default(OPEN)
+  createdAt         DateTime      @default(now())
+
+  // Relasi
+  learningModules   LearningModule[]
+  assignments       Assignment[]
+}
+
+// --- FITUR 3: MODUL PEMBELAJARAN ---
+
+model LearningModule {
+  id          Int     @id @default(autoincrement())
+  projectId   Int
+  project     Project @relation(fields: [projectId], references: [id])
+
+  title       String
+  description String? @db.Text
+  videoUrl    String?
+  docUrl      String? // Link PDF/Modul
+}
+
+// --- FITUR 4: ALUR PENUGASAN (Assignment) ---
+// Ini adalah tabel PIVOT utama yang menghubungkan Proyek, Guru, dan Siswa
+
+model Assignment {
+  id               Int              @id @default(autoincrement())
+  
+  projectId        Int
+  project          Project          @relation(fields: [projectId], references: [id])
+  
+  teacherProfileId Int
+  teacher          TeacherProfile   @relation(fields: [teacherProfileId], references: [id])
+  
+  studentProfileId Int
+  student          StudentProfile   @relation(fields: [studentProfileId], references: [id])
+
+  status           AssignmentStatus @default(ASSIGNED)
+  assignedAt       DateTime         @default(now())
+  deadline         DateTime?
+
+  // Relasi ke fitur lain
+  mentoringLogs    MentoringLog[]
+  submissions      Submission[]
+}
+
+// --- FITUR 4 (Lanjutan): MENTORING INDUSTRI ---
+
+model MentoringLog {
+  id           Int        @id @default(autoincrement())
+  assignmentId Int
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  
+  senderId     Int
+  sender       User       @relation(fields: [senderId], references: [id]) // Siapa yang kirim (Guru/Siswa/Industri)
+
+  message      String     @db.Text
+  sentAt       DateTime   @default(now())
+}
+
+// --- FITUR 5: SUBMISSION & SHOWCASE ---
+
+model Submission {
+  id               Int        @id @default(autoincrement())
+  assignmentId     Int
+  assignment       Assignment @relation(fields: [assignmentId], references: [id])
+
+  fileUrl          String
+  studentNotes     String?    @db.Text
+  submittedAt      DateTime   @default(now())
+  
+  // Feedback dari Industri
+  industryFeedback String?    @db.Text
+  score            Int?       // Nilai 0-100
+  isApproved       Boolean    @default(false) // Syarat masuk showcase
+
+  // Relasi ke Showcase (One-to-One: Satu submission approved jadi satu showcase)
+  showcase         Showcase?
+}
+
+model Showcase {
+  id           Int        @id @default(autoincrement())
+  submissionId Int        @unique
+  submission   Submission @relation(fields: [submissionId], references: [id])
+
+  publicTitle  String
+  publicDesc   String?    @db.Text
+  publishedAt  DateTime   @default(now())
+}
