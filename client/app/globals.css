@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 :root {
-  /* Warna Spesifik LinkedIn */
   --background: #f3f2ef; 
   --foreground: #1d2226;
   --color-blue: #0a66c2;
@@ -9,11 +8,13 @@
   --font-montserrat: "Montserrat", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-brand-blue: var(--color-blue);
-  --font-sans: var(--font-montserrat);
+@layer inline {
+  :root {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-brand-blue: var(--color-blue);
+    --font-sans: var(--font-montserrat);
+  }
 }
 
 body {

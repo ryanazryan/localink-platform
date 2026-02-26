@@ -16,7 +16,7 @@ export default function Sidebar() {
       {/* Desktop Sidebar (md+) */}
       <aside className="hidden md:flex flex-col w-64 bg-white h-screen fixed left-0 top-0 border-r border-gray-200 z-50">
         <div className="p-8">
-          <h2 className="text-2xl font-black text-[#3a57e8] tracking-tight text-black">Localink</h2>
+          <h2 className="text-2xl font-black text-[#3a57e8] tracking-tight">Localink</h2>
         </div>
         <nav className="flex-1 px-4 space-y-2">
           {menuItems.map((item) => {

@@ -62,3 +62,20 @@ exports.getProjectById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getAllProjectsForGuru = async (req, res) => {
+  try {
+    const projects = await prisma.project.findMany({
+      where: { status: 'OPEN' },
+      include: {
+        industry: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.status(200).json(projects);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal mengambil database proyek", error: error.message });
+  }
+};
