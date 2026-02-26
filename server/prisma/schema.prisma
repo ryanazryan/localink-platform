@@ -123,11 +123,12 @@ model Project {
   industry          IndustryProfile @relation(fields: [industryProfileId], references: [id])
 
   title             String
-  problemStatement  String        @db.Text
-  taskDetail        String        @db.Text
-  expectedOutput    String        // e.g. "Video", "Website", "Laporan PDF"
-  status            ProjectStatus @default(OPEN)
-  createdAt         DateTime      @default(now())
+  category          String?         
+  problemStatement  String          @db.Text
+  taskDetail        String          @db.Text
+  expectedOutput    String         
+  status            ProjectStatus   @default(OPEN)
+  createdAt         DateTime        @default(now())
 
   // Relasi
   learningModules   LearningModule[]

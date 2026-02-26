@@ -11,11 +11,13 @@ app.use(express.json());
 
 const authController = require('./controllers/authController');
 const industryController = require('./controllers/industryController');
-const verifyToken = require('./middlewares/authMiddleware');
+const projectRoutes = require('./routes/projectRoutes');
+const verifyToken = require('./middlewares/verifyToken');
 
 
 app.post('/api/auth/register', authController.register);
 app.post('/api/auth/login', authController.login);
+app.use('/api/projects', projectRoutes);
 
 app.get('/api/industry/profile', verifyToken, industryController.getProfile);
 app.put('/api/industry/profile', verifyToken, industryController.updateProfile);
