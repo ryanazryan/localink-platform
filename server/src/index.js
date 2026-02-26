@@ -6,19 +6,22 @@ dotenv.config();
 
 const app = express();
 
+app.use(express.json({ limit: '20mb' })); 
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
+
 app.use(cors());
-app.use(express.json());
 
 const authController = require('./controllers/authController');
 const industryController = require('./controllers/industryController');
 const projectRoutes = require('./routes/projectRoutes');
 const verifyToken = require('./middlewares/verifyToken');
 
+console.log("✅ AuthController Loaded:", Object.keys(authController));
 
 app.post('/api/auth/register', authController.register);
 app.post('/api/auth/login', authController.login);
-app.use('/api/projects', projectRoutes);
 
+app.use('/api/projects', projectRoutes);
 app.get('/api/industry/profile', verifyToken, industryController.getProfile);
 app.put('/api/industry/profile', verifyToken, industryController.updateProfile);
 

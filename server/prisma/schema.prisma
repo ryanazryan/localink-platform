@@ -50,7 +50,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relasi One-to-One ke Profil Spesifik
   industryProfile IndustryProfile?
   teacherProfile  TeacherProfile?
   studentProfile  StudentProfile?
@@ -62,20 +61,24 @@ model User {
 // --- PROFIL PENGGUNA ---
 
 model IndustryProfile {
-  id             Int     @id @default(autoincrement())
-  userId         Int     @unique
-  user           User    @relation(fields: [userId], references: [id])
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
+  user           User     @relation(fields: [userId], references: [id])
   
   namaPerusahaan String
-  deskripsi      String? @db.Text
-  alamat         String?
+  deskripsi      String?  @db.Text
+  alamat         String?  @db.Text
   website        String?
   bidangKerja    String?
   contactPerson  String?
+  
+  // ATRIBUT LOGO BARU
+  logo           String?  @db.Text
 
-  competencies Competency[]
-  projects     Project[]
+  competencies   Competency[]
+  projects       Project[]
 }
+
 model TeacherProfile {
   id           Int     @id @default(autoincrement())
   userId       Int     @unique
